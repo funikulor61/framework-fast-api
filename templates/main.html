@@ -7,8 +7,13 @@
 </head>
 <body>
 <div class="container">
-    <h2>Добро пожаловать, юзверь!</h2>
+    <h2>Добро пожаловать, {{ username }}!</h2>
+    <p><b>Хэшированный пароль:</b> {{ password_hash }}</p>
     <button onclick="toggleTheme()">Сменить тему</button>
+    <a href="/logout">Кнопка выхода из аккаунта</a>
+</div>
+<div>
+    {% block content %}{% endblock %}
 </div>
 <script>
 function toggleTheme() {
