@@ -447,3 +447,93 @@ body > div:not(.container) th {
     transition: none !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   Чат без JS (main.html): раскладка, список чатов, сообщения.
+   Всё на CSS-переменных — работает в светлой и тёмной теме
+   ════════════════════════════════════════════════════════════════ */
+
+.chat-wrap { display: flex; gap: 20px; }
+.chat-side { width: 220px; flex-shrink: 0; }
+.chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* Формы поиска и отправки: поле + кнопка в одну строку */
+.chat-form { display: flex; gap: 10px; }
+.chat-form input { margin-bottom: 0; }
+.chat-form button { white-space: nowrap; padding: 0.7rem 1.1rem; }
+.chat-side .chat-form { margin-bottom: 12px; }
+
+/* Список чатов */
+#chatList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 15px;
+  max-height: 190px;      /* длинный список скроллится внутри */
+  overflow-y: auto;
+}
+
+/* Один чат: имя + превью последнего сообщения */
+.chat-item {
+  display: block;
+  padding: 7px 10px;
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+.chat-item:hover { background: var(--hover-soft); }
+
+/* Открытый чат подсвечен */
+.chat-item.active {
+  background: rgba(99, 102, 241, 0.16);
+  outline: 1px solid rgba(99, 102, 241, 0.35);
+}
+
+.chat-item b { display: block; font-size: 0.9rem; }
+
+/* Превью — одна строка с многоточием */
+.chat-item span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Окно переписки */
+#messages {
+  list-style: none;
+  margin: 0 0 10px 0;
+  padding: 10px;
+  height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--input-border);
+  border-radius: 13px;
+  background: var(--input-bg);
+  display: flex;
+  flex-direction: column-reverse; /* без JS показываем конец истории */
+}
+#messages li { padding: 4px 0; line-height: 1.45; overflow-wrap: anywhere; }
+.msg-my { text-align: right; }
+.msg-their { text-align: left; }
+.hint { color: var(--text-muted); text-align: center; }
+
+/* Красная кнопка «Удалить чат» */
+button.btn-danger {
+  color: var(--danger);
+  background: transparent;
+  border: 1.5px solid var(--danger);
+  box-shadow: none;
+}
+button.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  transform: none;
+}
+
+/* Мобильные: колонки чата складываются вертикально */
+@media (max-width: 480px) {
+  .chat-wrap { flex-direction: column; }
+  .chat-side { width: auto; }
+}

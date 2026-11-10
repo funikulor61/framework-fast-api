@@ -2,23 +2,80 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer">
     <title>Главная</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="{{ 'dark' if (theme | default('light')) == 'dark' }}">
+{# Значения по умолчанию, чтобы этот же шаблон работал и на странице "/" (based_main.html) #}
+{% set chats = chats | default([]) %}
+{% set with_user = with_user | default(None) %}
+{% set history = history | default([]) %}
+{% set sid = sid | default('') %}
 <div class="container">
-    <h2>Добро пожаловать, {{ username }}!</h2>
-    <p><b>Хэшированный пароль:</b> {{ password_hash }}</p>
-    <button onclick="toggleTheme()">Сменить тему</button>
-    <a href="/logout">Кнопка выхода из аккаунта</a>
+    <h2>Добро пожаловать, {{ username | default('') }}!</h2>
+    <p><b>Хэшированный пароль:</b> {{ password_hash | default('') }}</p>
+    <a href="/theme?sid={{ sid }}&amp;next={{ ('/main?sid=' ~ sid) | urlencode }}">Сменить тему</a>
+    <a href="/logout?sid={{ sid }}">Кнопка выхода из аккаунта</a>
 </div>
 <div>
     {% block content %}{% endblock %}
 </div>
-<script>
-function toggleTheme() {
-    document.body.classList.toggle("dark");
-}
-</script>
+<!-- Чат без JS и без куки: сессия живёт на сервере, sid передаётся в URL и формах -->
+<div class="chat-wrap">
+
+    <!-- Левая колонка: поиск и список чатов -->
+    <div class="chat-side">
+        <h4>Поиск собеседника</h4>
+        <form method="get" action="/main" class="chat-form">
+            <input type="hidden" name="sid" value="{{ sid }}">
+            <input type="text" name="with_user" placeholder="Введите логин..." required>
+            <button type="submit">Открыть чат</button>
+        </form>
+
+        <h4>Ваши чаты</h4>
+        <div id="chatList">
+            {% for c in chats %}
+                <a class="chat-item{{ ' active' if c.user == with_user else '' }}" href="/main?with_user={{ c.user | urlencode }}&amp;sid={{ sid }}">
+                    <b>{{ c.user }}</b>
+                    <span>{{ 'Вы: ' if c.sender == username else '' }}{{ c.last }}</span>
+                </a>
+            {% endfor %}
+            {% if not chats %}<i class="hint">Пока нет переписок</i>{% endif %}
+        </div>
+
+        {% if with_user %}
+        <form method="post" action="/delete-chat">
+            <input type="hidden" name="sid" value="{{ sid }}">
+            <input type="hidden" name="with_user" value="{{ with_user }}">
+            <button type="submit" class="btn-danger">Удалить чат с {{ with_user }}</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Правая колонка: переписка -->
+    <div class="chat-main">
+        <ul id="messages">
+            {% if with_user %}
+                {# Список перевёрнут (reverse + column-reverse в CSS), чтобы без JS показывать конец истории #}
+                {% for m in history | reverse %}
+                    <li class="{{ 'msg-my' if m.sender == username else 'msg-their' }}"><b>{{ 'Вы' if m.sender == username else m.sender }}:</b> {{ m.text }}</li>
+                {% endfor %}
+                {% if not history %}<li class="hint">Сообщений пока нет — напишите первое!</li>{% endif %}
+            {% else %}
+                <li class="hint">Выберите чат слева, чтобы начать общение</li>
+            {% endif %}
+        </ul>
+
+        {% if with_user %}
+        <form method="post" action="/send" class="chat-form">
+            <input type="hidden" name="sid" value="{{ sid }}">
+            <input type="hidden" name="receiver" value="{{ with_user }}">
+            <input type="text" name="text" placeholder="Напишите сообщение..." autocomplete="off" autofocus required>
+            <button type="submit">Отправить</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
 </body>
 </html>
