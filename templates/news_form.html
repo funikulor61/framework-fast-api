@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ 'Редактирование новости' if is_edit else 'Новая новость' }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Плавное появление страницы и мягкое затухание при уходе на другую */
+        @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        body { animation: pageIn 0.35s ease; }
+        body.page-leave { animation: none; opacity: 0; transition: opacity 0.17s ease; }
+    </style>
+</head>
+<body class="{{ 'dark' if (theme | default('light')) == 'dark' }}">
+<div class="container">
+    <h2>{{ 'Редактирование новости' if is_edit else 'Новая новость' }}</h2>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="post" action="{{ post_url }}">
+        <input type="hidden" name="sid" value="{{ sid | default('') }}">
+        <input type="text" name="title" placeholder="Заголовок новости" maxlength="120"
+               value="{{ title_value | default('') }}" required>
+        <textarea name="text" placeholder="Текст новости..." required>{{ text_value | default('') }}</textarea>
+        <button type="submit">{{ 'Сохранить изменения' if is_edit else 'Опубликовать' }}</button>
+    </form>
+    <a href="/main?sid={{ sid | default('') }}">← Вернуться на главную</a>
+    <a href="/theme?sid={{ sid | default('') }}&amp;next={{ post_url | urlencode }}">Сменить тему</a>
+</div>
+<script>
+(function () {
+    // Плавный переход между страницами: страница мягко гаснет, затем открывается ссылка
+    function go(action) {
+        if (document.body.classList.contains('page-leave')) return;
+        document.body.classList.add('page-leave');
+        setTimeout(action, 170);
+    }
+    document.addEventListener('click', function (e) {
+        if (e.defaultPrevented || e.button !== 0) return;
+        var a = e.target.closest ? e.target.closest('a[href]') : null;
+        if (!a || a.target === '_blank') return;
+        var href = a.getAttribute('href') || '';
+        if (!href || href.charAt(0) === '#' || /^(https?:|mailto:|tel:)/i.test(href)) return;
+        e.preventDefault();
+        go(function () { window.location.href = href; });
+    });
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!form.reportValidity || !form.reportValidity()) return;
+        e.preventDefault();
+        go(function () { form.submit(); });
+    }, true);
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) document.body.classList.remove('page-leave');
+    });
+})();
+</script>
+</body>
+</html>

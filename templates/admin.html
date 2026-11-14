@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Страница админа</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Плавное появление страницы и мягкое затухание при уходе на другую */
+        @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        body { animation: pageIn 0.35s ease; }
+        body.page-leave { animation: none; opacity: 0; transition: opacity 0.17s ease; }
+
+        /* ── Стили страницы админа живут прямо здесь — работают с любой версией style.css ── */
+        .role-line { margin: 0; font-size: 0.95rem; color: var(--text-muted, #64748b); }
+        .role-badge {
+            display: inline-block;
+            padding: 3px 11px;
+            border-radius: 99px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            vertical-align: middle;
+        }
+        .role-badge.observer  { color: #64748b; background: rgba(100, 116, 139, 0.16); }
+        .role-badge.moderator { color: #059669; background: rgba(16, 185, 129, 0.16); }
+        .role-badge.admin     { color: var(--danger, #ef4444); background: rgba(239, 68, 68, 0.14); }
+        body.dark .role-badge.observer  { color: #94a3b8; }
+        body.dark .role-badge.moderator { color: #34d399; }
+
+        .panel { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.2rem 0.1rem; }
+        .panel h3 { margin: 0.2rem 0 0; font-size: 1.05rem; color: var(--accent, #6366f1); }
+        .panel-note { margin: 0; font-size: 0.88rem; color: var(--text-muted, #64748b); }
+
+        .container a.panel-news-link {
+            display: inline-block;
+            color: #fff;
+            font-weight: 700;
+            border: none;
+            background: var(--accent-grad, linear-gradient(135deg, #6366f1, #a855f7));
+            box-shadow: 0 10px 22px rgba(99, 102, 241, 0.35);
+            transition: transform 0.2s ease, box-shadow 0.25s ease;
+        }
+        .container a.panel-news-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(99, 102, 241, 0.45);
+            text-decoration: none;
+        }
+
+        /* Таблица пользователей: аватарки — маленькие кружки, а не огромные картинки */
+        .role-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .role-table th,
+        .role-table td {
+            padding: 0.45rem 0.6rem;
+            text-align: left;
+            border-bottom: 1px solid var(--input-border, #dce3f2);
+        }
+        body.dark .role-table th,
+        body.dark .role-table td { border-bottom-color: rgba(148, 163, 184, 0.25); }
+        .role-table th {
+            color: var(--text-muted, #64748b);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .table-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+            vertical-align: middle;
+            border: 1.5px solid var(--card-border, rgba(255, 255, 255, 0.85));
+        }
+    </style>
+</head>
+<body class="{{ 'dark' if (theme | default('light')) == 'dark' }}">
+<div class="container">
+    <h2>Страница админа</h2>
+
+    <p class="role-line">Ваш статус:
+        <b class="role-badge {{ 'admin' if my_role == 'Админ' else ('moderator' if my_role == 'Модератор' else 'observer') }}">{{ my_role | default('Наблюдатель') }}</b>
+    </p>
+
+    <a href="/main?sid={{ sid | default('') }}">← Вернуться на главную</a>
+    <a href="/theme?sid={{ sid | default('') }}&amp;next={{ ('/admin?sid=' ~ (sid | default(''))) | urlencode }}">Сменить тему</a>
+
+    {% if granted %}
+    <div class="panel">
+        <h3>Панель админа</h3>
+        <p class="panel-note">Вы можете писать и редактировать новости на главной странице:</p>
+        <a class="panel-news-link" href="/main?sid={{ sid | default('') }}">📰 К новостям на главной →</a>
+
+        <p class="panel-note">Зарегистрированные пользователи ({{ users | length }}):</p>
+        <table class="role-table">
+            <tr><th>Аватар</th><th>Логин</th><th>Роль</th></tr>
+            {% for u in users %}
+            <tr>
+                <td>
+                    {% if u.avatar %}
+                    <img class="table-avatar" src="/static/avatars/{{ u.avatar }}" alt="Аватар {{ u.login }}">
+                    {% else %}—{% endif %}
+                </td>
+                <td>{{ u.login }}</td>
+                <td>{{ u.role }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p class="hint">Введите логин и пароль админа — роль «Админ» закрепится за вашим аккаунтом, и статус на главной странице изменится.</p>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="post" action="/admin">
+        <input type="hidden" name="sid" value="{{ sid | default('') }}">
+        <input type="text" name="login" placeholder="Логин админа" required>
+        <input type="password" name="password" placeholder="Пароль админа" required>
+        <button type="submit">Получить роль</button>
+    </form>
+    {% endif %}
+</div>
+<script>
+(function () {
+    // Плавный переход между страницами: страница мягко гаснет, затем открывается ссылка
+    function go(action) {
+        if (document.body.classList.contains('page-leave')) return;
+        document.body.classList.add('page-leave');
+        setTimeout(action, 170);
+    }
+    document.addEventListener('click', function (e) {
+        if (e.defaultPrevented || e.button !== 0) return;
+        var a = e.target.closest ? e.target.closest('a[href]') : null;
+        if (!a || a.target === '_blank') return;
+        var href = a.getAttribute('href') || '';
+        if (!href || href.charAt(0) === '#' || /^(https?:|mailto:|tel:)/i.test(href)) return;
+        e.preventDefault();
+        go(function () { window.location.href = href; });
+    });
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!form.reportValidity || !form.reportValidity()) return;
+        e.preventDefault();
+        go(function () { form.submit(); });
+    }, true);
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) document.body.classList.remove('page-leave');
+    });
+})();
+</script>
+</body>
+</html>

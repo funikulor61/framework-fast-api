@@ -2,3 +2,6 @@ sender,receiver,text,is_deleted_by_sender,is_deleted_by_receiver
 vitalik,asd,asdasdasd,False,False
 vitalik,asdasd,zahar poshel,False,False
 vitalik,boris,дарова,True,False
+vitalik,asdasd,привеь,False,False
+vasya,vitalik,"привет виталя , это я васек",False,False
+vasya,asd,дарова,False,False

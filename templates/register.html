@@ -4,16 +4,45 @@
     <meta charset="UTF-8">
     <title>Регистрация</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Предпросмотр аватарки — маленький кружок, как на главной странице.
+           Стили живут прямо здесь и работают с любой версией style.css. */
+        .avatar-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: -0.35rem 0 1.1rem;
+            padding: 0.7rem 0.9rem;
+            border: 1.5px dashed var(--input-border, #dce3f2);
+            border-radius: 13px;
+        }
+        .avatar-preview[hidden] { display: none; } /* display:flex перебивает атрибут hidden */
+        .avatar-preview img {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;      /* кружок, а не картинка «как есть» */
+            object-fit: cover;       /* не даём картинке деформироваться */
+            flex-shrink: 0;
+            border: 2px solid var(--card-border, rgba(255, 255, 255, 0.85));
+            box-shadow: 0 6px 16px rgba(2, 6, 23, 0.2);
+        }
+        .avatar-preview span { font-size: 0.8rem; color: var(--text-muted, #64748b); }
+    </style>
 </head>
 <body>
 <div class="container">
     <h2>Регистрация</h2>
     <form method="post" action="/register" enctype="multipart/form-data">
-        {% block zahar %}{% endblock zahar %}
+        {% block zahar %}
+        {% endblock zahar %}
         <input type="text" name="username" placeholder="Имя пользователя" required><br>
         <input type="password" id="password" name="password" placeholder="Пароль" required>
         <input type="checkbox" onclick="togglePassword()"> Показать пароль<br>
-        <input type="file" name="avatar" accept="image/*"><br>
+        <input type="file" id="avatar" name="avatar" accept="image/*" required onchange="previewAvatar(this)"><br>
+        <div class="avatar-preview" id="avatarPreview" hidden>
+            <img id="avatarImg" alt="Предпросмотр аватарки">
+            <span>Так аватарка будет показана в левом верхнем углу главной страницы</span>
+        </div>
         <button type="submit">Зарегистрировать</button>
     </form>
     <button onclick="toggleTheme()">Сменить тему</button>
@@ -25,6 +54,15 @@ function togglePassword() {
 }
 function toggleTheme() {
     document.body.classList.toggle("dark");
+}
+function previewAvatar(input) {
+    var box = document.getElementById("avatarPreview");
+    if (input.files && input.files[0]) {
+        document.getElementById("avatarImg").src = URL.createObjectURL(input.files[0]);
+        box.hidden = false;
+    } else {
+        box.hidden = true;
+    }
 }
 </script>
 </body>

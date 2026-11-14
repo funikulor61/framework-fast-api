@@ -537,3 +537,282 @@ button.btn-danger:hover {
   .chat-wrap { flex-direction: column; }
   .chat-side { width: auto; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   Роли: статус + кнопка «Получить роль» с выезжающими кнопками;
+   новости на главной; форма новости (textarea); страницы ролей
+   ════════════════════════════════════════════════════════════════ */
+
+/* ───── Статус + кнопка «Получить роль» с выезжающим меню ───── */
+
+.role-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.role-status {
+  margin-right: auto; /* статус слева, кнопка справа */
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+/* Бейдж роли: цвет зависит от статуса */
+.role-badge {
+  display: inline-block;
+  padding: 3px 11px;
+  margin-left: 4px;
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  vertical-align: middle;
+}
+.role-badge.observer  { color: #64748b; background: rgba(100, 116, 139, 0.16); }
+.role-badge.moderator { color: #059669; background: rgba(16, 185, 129, 0.16); }
+.role-badge.admin     { color: var(--danger); background: rgba(239, 68, 68, 0.14); }
+body.dark .role-badge.observer  { color: #94a3b8; }
+body.dark .role-badge.moderator { color: #34d399; }
+
+/* Кнопка «Получить роль» — label к скрытому чекбоксу: без JS */
+.role-toggle-input { display: none; }
+
+.role-toggle-btn {
+  padding: 0.7rem 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent-grad);
+  border-radius: 13px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 10px 22px rgba(99, 102, 241, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+.role-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(99, 102, 241, 0.45);
+}
+.role-toggle-btn::after {
+  content: "▾";
+  display: inline-block;
+  margin-left: 7px;
+  transition: transform 0.35s ease;
+}
+.role-toggle-input:checked + .role-toggle-btn::after { transform: rotate(180deg); }
+.role-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Выезжающее меню с двумя кнопками-ссылками */
+.role-menu {
+  flex-basis: 100%;
+  display: flex;
+  gap: 10px;
+  max-height: 0;
+  margin-top: -10px; /* компенсируем gap контейнера, пока меню скрыто */
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-12px) scaleY(0.92);
+  transform-origin: top center;
+  transition: max-height 0.4s ease, opacity 0.3s ease,
+              transform 0.4s ease, margin-top 0.4s ease;
+}
+.role-toggle-input:checked ~ .role-menu {
+  max-height: 140px;
+  margin-top: 0;
+  opacity: 1;
+  transform: none;
+}
+
+/* Ссылки меню (перебиваем общие стили .container a — у них красный hover) */
+.container a.role-link {
+  flex: 1;
+  padding: 0.68rem 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  transition: transform 0.2s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+.container a.role-link:hover { transform: translateY(-2px); text-decoration: none; }
+.container a.role-link-mod {
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.55);
+  background: rgba(16, 185, 129, 0.10);
+}
+.container a.role-link-mod:hover {
+  color: #047857;
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.20);
+}
+.container a.role-link-admin {
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.55);
+  background: rgba(239, 68, 68, 0.08);
+}
+.container a.role-link-admin:hover {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.16);
+}
+body.dark .container a.role-link-mod { color: #34d399; }
+
+/* ───── Новости на главной ───── */
+
+.news-wrap { display: flex; flex-direction: column; gap: 0.9rem; }
+
+.news-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.news-head h2 { margin-right: auto; } /* заголовок слева, кнопка справа */
+
+/* Кнопка «＋ Написать новость» — только для админа */
+.btn-news {
+  display: inline-block;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent-grad);
+  border-radius: 13px;
+  box-shadow: 0 10px 22px rgba(99, 102, 241, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+.btn-news:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(99, 102, 241, 0.45);
+  text-decoration: none;
+}
+.btn-news:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.news-list { display: flex; flex-direction: column; gap: 14px; }
+
+/* Одна новость — карточка внутри общего блока */
+.news-item {
+  padding: 1.05rem 1.2rem;
+  border: 1px solid var(--input-border);
+  border-radius: 14px;
+  background: var(--input-bg);
+}
+.news-item h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+/* Строка «Автор: … · дата · отредактировал …» */
+.news-wrap .news-meta {
+  margin: 0 0 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+/* Текст новости: pre-line сохраняет абзацы (переводы строк) */
+.news-wrap .news-text {
+  margin: 0;
+  line-height: 1.65;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* Ссылка «✏️ Редактировать» — для модератора и админа */
+.news-wrap .news-edit {
+  display: inline-block;
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.news-wrap .news-edit:hover { text-decoration: underline; }
+
+/* ───── Форма новости: textarea ───── */
+
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 170px;
+  resize: vertical;
+  margin: 0 0 1rem;
+  padding: 0.9rem 1.1rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 13px;
+  outline: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+textarea::placeholder { color: var(--text-muted); opacity: 0.75; }
+
+/* ───── Страницы ролей: moderator.html и admin.html ───── */
+
+.role-line { margin: 0; font-size: 0.95rem; color: var(--text-muted); }
+
+.panel { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.2rem 0.1rem; }
+.panel h3 { margin: 0.2rem 0 0; font-size: 1.05rem; color: var(--accent); }
+.panel-note { margin: 0; font-size: 0.88rem; color: var(--text-muted); }
+
+/* Ссылка «К новостям» в панели роли — заметная, в стиле кнопки */
+.container a.panel-news-link {
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  background: var(--accent-grad);
+  box-shadow: 0 10px 22px rgba(99, 102, 241, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+.container a.panel-news-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(99, 102, 241, 0.45);
+  text-decoration: none;
+}
+
+/* Лента последних сообщений (панель модератора) */
+.feed {
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--input-border);
+  border-radius: 13px;
+  background: var(--input-bg);
+}
+.feed li {
+  padding: 6px 2px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  border-bottom: 1px dashed var(--input-border);
+  overflow-wrap: anywhere;
+}
+.feed li:last-child { border-bottom: none; }
+.feed b { color: var(--accent); }
+
+/* Таблица пользователей (панель админа) */
+.role-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.role-table th,
+.role-table td {
+  padding: 0.55rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--input-border);
+}
+.role-table th {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.table-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: middle;
+  border: 1.5px solid var(--card-border);
+}
