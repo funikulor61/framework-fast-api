@@ -98,6 +98,8 @@
         .role-toggle-btn:focus-visible { outline: 2px solid var(--accent, #6366f1); outline-offset: 3px; }
         .role-toggle-btn .caret { display: inline-block; margin-left: 6px; transition: transform 0.3s ease; }
         .role-box.open .role-toggle-btn .caret { transform: rotate(180deg); }
+        /* в style.css осталась стрелка от старой версии с галочкой — убираем дубль */
+        .role-toggle-btn::after { content: none; }
 
         /* Выезжающее меню с двумя кнопками-ссылками */
         .role-menu {
@@ -366,49 +368,19 @@
     </div>
 </div>
 
+<!-- Плавные переходы между страницами — общий скрипт для всех страниц -->
+<script src="/static/transitions.js"></script>
 <script>
+// Кнопка «Получить роль»: меню выезжает по клику и закрывается кликом мимо него
 (function () {
-    // ═══ Кнопка «Получить роль»: меню выезжает по клику и закрывается
-    //     кликом мимо или клавишей Esc (галочка-checkbox больше не нужна) ═══
     var box = document.querySelector('.role-box');
-    if (box) {
-        box.querySelector('.role-toggle-btn').addEventListener('click', function (e) {
-            e.stopPropagation();
-            box.classList.toggle('open');
-        });
-        document.addEventListener('click', function (e) {
-            if (!box.contains(e.target)) box.classList.remove('open');
-        });
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') box.classList.remove('open');
-        });
-    }
-
-    // ═══ Плавный переход между страницами: страница мягко гаснет,
-    //     затем открывается ссылка (или отправляется форма) ═══
-    function go(action) {
-        if (document.body.classList.contains('page-leave')) return;
-        document.body.classList.add('page-leave');
-        setTimeout(action, 170);
-    }
-    document.addEventListener('click', function (e) {
-        if (e.defaultPrevented || e.button !== 0) return;
-        var a = e.target.closest ? e.target.closest('a[href]') : null;
-        if (!a || a.target === '_blank') return;
-        var href = a.getAttribute('href') || '';
-        if (!href || href.charAt(0) === '#' || /^(https?:|mailto:|tel:)/i.test(href)) return;
-        e.preventDefault();
-        go(function () { window.location.href = href; });
+    if (!box) return;
+    box.querySelector('.role-toggle-btn').addEventListener('click', function (e) {
+        e.stopPropagation();
+        box.classList.toggle('open');
     });
-    document.addEventListener('submit', function (e) {
-        var form = e.target;
-        if (!form.reportValidity || !form.reportValidity()) return; // пустые обязательные поля — как обычно
-        e.preventDefault();
-        go(function () { form.submit(); });
-    }, true);
-    // если страница вернулась из кэша браузера (кнопка «Назад») — убрать затемнение
-    window.addEventListener('pageshow', function (e) {
-        if (e.persisted) document.body.classList.remove('page-leave');
+    document.addEventListener('click', function (e) {
+        if (!box.contains(e.target)) box.classList.remove('open');
     });
 })();
 </script>

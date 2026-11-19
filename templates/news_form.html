@@ -25,33 +25,7 @@
     <a href="/main?sid={{ sid | default('') }}">← Вернуться на главную</a>
     <a href="/theme?sid={{ sid | default('') }}&amp;next={{ post_url | urlencode }}">Сменить тему</a>
 </div>
-<script>
-(function () {
-    // Плавный переход между страницами: страница мягко гаснет, затем открывается ссылка
-    function go(action) {
-        if (document.body.classList.contains('page-leave')) return;
-        document.body.classList.add('page-leave');
-        setTimeout(action, 170);
-    }
-    document.addEventListener('click', function (e) {
-        if (e.defaultPrevented || e.button !== 0) return;
-        var a = e.target.closest ? e.target.closest('a[href]') : null;
-        if (!a || a.target === '_blank') return;
-        var href = a.getAttribute('href') || '';
-        if (!href || href.charAt(0) === '#' || /^(https?:|mailto:|tel:)/i.test(href)) return;
-        e.preventDefault();
-        go(function () { window.location.href = href; });
-    });
-    document.addEventListener('submit', function (e) {
-        var form = e.target;
-        if (!form.reportValidity || !form.reportValidity()) return;
-        e.preventDefault();
-        go(function () { form.submit(); });
-    }, true);
-    window.addEventListener('pageshow', function (e) {
-        if (e.persisted) document.body.classList.remove('page-leave');
-    });
-})();
-</script>
+<!-- Плавные переходы между страницами — общий скрипт для всех страниц -->
+<script src="/static/transitions.js"></script>
 </body>
 </html>
